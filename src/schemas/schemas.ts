@@ -15,5 +15,8 @@ export const schemas = {
     }),
     blockAndUnblockCardSchema: joi.object().keys({
       password: joi.string().regex(/^\d+$/).length(4).required()
+    }),
+    rechargeSchema: joi.object().keys({
+      amount: joi.number().greater(0).required()
     })
   };
