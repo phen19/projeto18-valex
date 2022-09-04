@@ -1,6 +1,8 @@
 import * as cardRepository from "../repositories/cardRepository.js"
 import * as employeeRepository from "../repositories/employeeRepository.js"
 import * as companyRepository from "../repositories/companyRepository.js"
+import * as paymentRepository from "../repositories/paymentRepository.js"
+import * as rechargeRepository from "../repositories/rechargeRepository.js"
 import { faker } from '@faker-js/faker';
 import dayjs from "dayjs";
 import Cryptr from "cryptr";
@@ -9,6 +11,14 @@ import bcrypt from "bcryptjs";
 
 dotenv.config()
 const cryptr = new Cryptr(process.env.SECRET_KEY)
+
+async function getCardById(id: number){
+    const card = await cardRepository.findById(id);
+    if(!card){
+        throw { code: 'NotFound', message: 'Cartão não encontrado' }
+    }
+    return card
+}
 
 export async function newCardInfoValidation(id: number, api: string, type: cardRepository.TransactionTypes){
     const employee = await employeeRepository.findById(id); 
@@ -69,10 +79,7 @@ export async function createCard(id: number, api: string, type: cardRepository.T
 }
 
 export async function activateCard(id:number, securityCode: string, password: string){
-    const card = await cardRepository.findById(id);
-    if(!card){
-        throw { code: 'NotFound', message: 'Cartão não encontrado' }
-    }
+    const card = await getCardById(id)
 
     if(card.password !== null){
         throw { code: 'Conflict', message: 'Cartão já está ativo'};
@@ -97,4 +104,23 @@ export async function activateCard(id:number, securityCode: string, password: st
 
     await cardRepository.update(id, { password: passwordEncrypted })
 
+}
+
+export async function cardBalance(id:number){
+    const card = await getCardById(id)
+
+    const payments = await paymentRepository.findByCardId(id);
+    const rechargesNoFormat = await rechargeRepository.findByCardId(id);
+
+    const paymentsAmount:number = payments.map((p) => p.amount).reduce((current: number, sum: number) => sum + current);
+    const rechargesAmount:number = rechargesNoFormat.map((r) => r.amount).reduce((current: number, sum: number) => sum + current);
+
+    const balance:number = rechargesAmount - paymentsAmount
+
+    const transactions = payments.map((p)=>{return { ...p, timestamp: dayjs(p.timestamp).format("DD/MM/YYYY")}})
+    const recharges = rechargesNoFormat.map((r)=>{return { ...r, timestamp: dayjs(r.timestamp).format("DD/MM/YYYY")}})
+    console.log(transactions)
+    return { balance, 
+            transactions,
+            recharges}
 }
