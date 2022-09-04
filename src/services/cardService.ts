@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker';
 import dayjs from "dayjs";
 import Cryptr from "cryptr";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 
 dotenv.config()
 const cryptr = new Cryptr(process.env.SECRET_KEY)
@@ -57,5 +58,43 @@ export async function createCard(id: number, api: string, type: cardRepository.T
         type,
     }
 
-    await cardRepository.insert(cardData)
+    const result = await cardRepository.insert(cardData)
+    return {
+        cardId: result.cardId,
+        number: cardNumber,
+        securityCode: cryptr.decrypt(securityCode),
+        expirationDate,
+        type
+    }
+}
+
+export async function activateCard(id:number, securityCode: string, password: string){
+    const card = await cardRepository.findById(id);
+    if(!card){
+        throw { code: 'NotFound', message: 'Cartão não encontrado' }
+    }
+
+    if(card.password !== null){
+        throw { code: 'Conflict', message: 'Cartão já está ativo'};
+        
+    }
+
+    const dateNow: string = dayjs().format('DD/MM/YY')
+    const expirationDate = card.expirationDate.split("/")
+    const expirationDatewithDay = `01/${parseInt(expirationDate[0])+1}/${(expirationDate[1])}`
+    const isDateExpired: number = dayjs(dateNow).diff(expirationDatewithDay)
+    if(isDateExpired > 0) {
+        throw { code: 'Unauthorized', message: 'Cartão expirado'};
+    }
+
+    const securityCodeDescrypted: string = cryptr.decrypt(card.securityCode)
+
+    if(securityCodeDescrypted.length !== 3 || !securityCodeDescrypted || securityCodeDescrypted !== securityCode) {
+        throw { code: 'Unauthorized', message: 'Código CVV inválido'};
+    }
+
+    const passwordEncrypted :string = bcrypt.hashSync(password, 10);
+
+    await cardRepository.update(id, { password: passwordEncrypted })
+
 }
