@@ -9,8 +9,7 @@ export const schemas = {
       API_KEY: joi.string().required(),
     }),
     activateCardSchema: joi.object().keys({
-      cardId: joi.number().required(),
-      securityCode: joi.string().required(),
+      securityCode: joi.string().regex(/^\d+$/).length(3).required(),
       password: joi.string().regex(/^\d+$/).length(4).required()
     }),
     blockAndUnblockCardSchema: joi.object().keys({

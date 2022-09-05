@@ -14,7 +14,7 @@ export async function createCard(req: Request, res: Response) {
 }
 
 export async function activateCard(req: Request, res: Response){
-    const id:number = req.body.cardId;
+    const id:number = parseInt(req.params.id);
     const securityCode:string = req.body.securityCode;
     const password:string = req.body.password;
 

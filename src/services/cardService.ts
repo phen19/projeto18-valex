@@ -6,7 +6,6 @@ import * as rechargeRepository from "../repositories/rechargeRepository.js"
 import * as businessRepository from "../repositories/businessRepository.js"
 import { faker } from '@faker-js/faker';
 import dayjs from "dayjs";
-//import 'dayjs/locale/pt-br';
 import Cryptr from "cryptr";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
