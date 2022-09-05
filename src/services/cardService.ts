@@ -128,9 +128,8 @@ export async function cardBalance(id:number){
     const payments = await paymentRepository.findByCardId(id);
     const rechargesNoFormat = await rechargeRepository.findByCardId(id);
 
-    const paymentsAmount:number = payments.map((p) => p.amount).reduce((current: number, sum: number) => sum + current);
-    const rechargesAmount:number = rechargesNoFormat.map((r) => r.amount).reduce((current: number, sum: number) => sum + current);
-
+    const paymentsAmount:number = payments.map((p) => p.amount).reduce((sum: number, current: number) => sum + current,0);
+    const rechargesAmount:number = rechargesNoFormat.map((r) => r.amount).reduce((sum: number, current:number) => sum + current,0);
     const balance:number = rechargesAmount - paymentsAmount
 
     const transactions = payments.map((p)=>{return { ...p, timestamp: dayjs(p.timestamp).format("DD/MM/YYYY")}})
