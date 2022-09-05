@@ -6,12 +6,16 @@ import * as rechargeRepository from "../repositories/rechargeRepository.js"
 import * as businessRepository from "../repositories/businessRepository.js"
 import { faker } from '@faker-js/faker';
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js"
+import customParseFormat from "dayjs/plugin/customParseFormat.js"
 import Cryptr from "cryptr";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 
 dotenv.config()
 const cryptr = new Cryptr(process.env.SECRET_KEY)
+dayjs.extend(customParseFormat);
+dayjs.extend(isSameOrAfter)
 
 async function validateCardbyId(id: number){
     const card = await cardRepository.findById(id);
@@ -19,14 +23,13 @@ async function validateCardbyId(id: number){
         throw { code: 'NotFound', message: 'Cartão não encontrado' }
     }
 
-    const dateNow= dayjs().format('MM/DD/YYYY')
-    const expirationDate = card.expirationDate.split("/")
-    const expirationDatewithDay = `${parseInt(expirationDate[0])+1}/01/20${expirationDate[1]}`
-    const isDateExpired: number = dayjs(dateNow).diff(expirationDatewithDay)
-    if(isDateExpired > 0) {
-        throw { code: 'Unauthorized', message: 'Cartão expirado'};
-    }
+    const today = dayjs(dayjs(), "MM/YY");
+    const expirationDate = dayjs(card.expirationDate, "MM/YY")
+    const hasExpired:boolean = today.isSameOrAfter(expirationDate, "month")
 
+    if(hasExpired) {
+        throw {code: 'Unauthorized', message:'Cartão expirado'}
+    }
     return card
 }
 
