@@ -6,6 +6,7 @@ import * as rechargeRepository from "../repositories/rechargeRepository.js"
 import * as businessRepository from "../repositories/businessRepository.js"
 import { faker } from '@faker-js/faker';
 import dayjs from "dayjs";
+//import 'dayjs/locale/pt-br';
 import Cryptr from "cryptr";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
@@ -19,9 +20,9 @@ async function validateCardbyId(id: number){
         throw { code: 'NotFound', message: 'Cartão não encontrado' }
     }
 
-    const dateNow: string = dayjs().format('DD/MM/YY')
+    const dateNow= dayjs().format('MM/DD/YYYY')
     const expirationDate = card.expirationDate.split("/")
-    const expirationDatewithDay = `01/${parseInt(expirationDate[0])+1}/${(expirationDate[1])}`
+    const expirationDatewithDay = `${parseInt(expirationDate[0])+1}/01/20${expirationDate[1]}`
     const isDateExpired: number = dayjs(dateNow).diff(expirationDatewithDay)
     if(isDateExpired > 0) {
         throw { code: 'Unauthorized', message: 'Cartão expirado'};
