@@ -1,7 +1,5 @@
 # projeto18-valex
 
-# projeto18-valex
-
 # Rotas de criação e gerenciamento de cartões:
 
 ## Rota <span style="color:yellow"> **POST** </span>/newCard
